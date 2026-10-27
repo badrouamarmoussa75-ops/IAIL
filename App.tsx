@@ -1,25 +1,4 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Alert, Pressable} from 'react-native';
-
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.titre}>Bonjour Campus !</Text>
-      <Text style={styles.soustitre}>IAIL S5- Developpement mobile</Text>
-    
-    <Pressable
-    style={styles.bouton}
-    onPress={() => Alert.alert(
-      'Bienvenue',
-      'Votre premiere application IAIL S5 fonctionne !'
-    )}
-    >
-      <Text style={styles.texteBouton}>Bienvenue</Text>
-    </Pressable>
-    </View>
-  );
-}
-const styles = StyleSheet.create({import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 
 const etudiants = [
   { id: 1, nom: 'Amine',   note: 16 },
@@ -28,59 +7,94 @@ const etudiants = [
   { id: 4, nom: 'Omar',    note: 12 }
 ];
 
-const total   = etudiants.reduce((s, e) => s + e.note, 0);
+const total = etudiants.reduce((s, e) => s + e.note, 0);
 const moyenne = total / etudiants.length;
 
 export default function App() {
   return (
-    <View style={styles.ecran}>
-      <Text style={styles.titre}>Notes des étudiants</Text>
+    <ScrollView contentContainerStyle={styles.ecran}>
+      {/* العنوان الرئيسي */}
+      <Text style={styles.titre}>Notes des etudiants</Text>
+      
+      {/* المعدل العام */}
       <Text style={styles.moyenne}>Moyenne : {moyenne}/20</Text>
-      {etudiants.map((e) => (
-        <Text key={e.id} style={styles.ligne}>
-          {e.nom} : {e.note}/20
-        </Text>
-      ))}
-    </View>
+      
+      {/* عرض الطلبة */}
+      {etudiants.map((e) => {
+        // تحديد النتيجة بناءً على النقطة
+        const decision = e.note >= 10 ? 'Admis' : 'Ajourné';
+        const couleurNote = e.note >= 10 ? '#008000' : '#CC0000'; // أخضر أو أحمر
+        
+        return (
+          <View key={e.id} style={styles.carteEtudiant}>
+            {/* اسم الطالب */}
+            <Text style={styles.nomEtudiant}>{e.nom}</Text>
+            
+            {/* النقطة والحالة تحت الاسم */}
+            <View style={styles.ligneInfo}>
+              <Text style={styles.texteNote}>Note : {e.note}/20</Text>
+              <Text style={[styles.texteDecision, { color: couleurNote }]}>
+                {decision}
+              </Text>
+            </View>
+          </View>
+        );
+      })}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  ecran:   { flex: 1, justifyContent: 'center', padding: 26,
-             backgroundColor: '#F2F7FD' },
-  titre:   { fontSize: 24, fontWeight: 'bold', color: '#00235C',
-             marginBottom: 16 },
-  moyenne: { fontSize: 19, marginBottom: 20, color: '#003796' },
-  ligne:   { fontSize: 17, paddingVertical: 8, color: '#00235C' }
-});
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F2F7FD',
-    padding: 20,
-    },
-    titre: {
-    color: '#003796',
-    fontSize: 26,
+  ecran: { 
+    flexGrow: 1, 
+    justifyContent: 'center', 
+    padding: 26, 
+    backgroundColor: '#F2F7FD' 
+  },
+  titre: { 
+    fontSize: 26, 
+    fontWeight: 'bold', 
+    color: '#00235C', 
+    marginBottom: 10,
+    textAlign: 'center'
+  },
+  moyenne: { 
+    fontSize: 20, 
     fontWeight: 'bold',
-    },
-    sousTitre: {
-    marginTop: 12,
+    marginBottom: 25, 
+    color: '#003796',
+    textAlign: 'center'
+  },
+  carteEtudiant: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 12,
+    borderLeftWidth: 5,
+    borderLeftColor: '#003796', // خط أزرق جانبي
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3, // ظل لأندرويد
+  },
+  nomEtudiant: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#00235C',
+    marginBottom: 5,
+  },
+  ligneInfo: {
+    flexDirection: 'row', // وضع النقطة والحالة بجانب بعضهما
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  texteNote: {
     fontSize: 16,
-    textAlign: 'center',
-   },
-   bouton:{
-      marginTop:24,
-      backgroundColor:'#003796',
-      paddingVertical:13,
-      paddingHorizontal:28,
-      borderRadius:9,
-    },
-    texteBouton: {
-      color:'#FFFFFF',
-      fontWeight:'bold',
-      textAlign:'center',
-    },
-  });
-
+    color: '#333333',
+  },
+  texteDecision: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  }
+});
