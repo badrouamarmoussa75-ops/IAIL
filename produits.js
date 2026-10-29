@@ -1,134 +1,163 @@
-'use strict';
+// =========================================================
+// TP2 : Catalogue de produits - Logique métier JavaScript
+// Module : Développement mobile - IAIL S5
+// =========================================================
 
-/* --------------------------------------------------------------------------
- * 1) Donnees de depart : catalogue initial
- * ------------------------------------------------------------------------ */
-
+// 1. Données de départ
 const produits = [
-  { id: 1, nom: 'Clavier', categorie: 'Accessoires', prix: 120, stock: 5 },
-  { id: 2, nom: 'Souris', categorie: 'Accessoires', prix: 80, stock: 8 },
-  { id: 3, nom: 'Ecran', categorie: 'Informatique', prix: 900, stock: 0 },
-  { id: 4, nom: 'Casque', categorie: 'Accessoires', prix: 240, stock: 3 },
+  { id: 1, nom: 'Clavier', categorie: 'Accessoires',  prix: 120, stock: 5 },
+  { id: 2, nom: 'Souris',  categorie: 'Accessoires',  prix: 80,  stock: 8 },
+  { id: 3, nom: 'Écran',   categorie: 'Informatique', prix: 900, stock: 0 },
+  { id: 4, nom: 'Casque',  categorie: 'Accessoires',  prix: 240, stock: 3 }
 ];
 
-const enMAD = (montant) => `${montant} MAD`;
+// 2. Fonctions de la logique métier
 
-/* --------------------------------------------------------------------------
- * 2) Fonctions de la logique metier
- * ------------------------------------------------------------------------ */
-
-function afficherCatalogue(catalogue) {
-  console.log('--- Catalogue complet ---');
-  catalogue.forEach(({ nom, prix }) => {
-    console.log(`- ${nom} : ${enMAD(prix)}`);
-  });
+// --- Formatage (testable indépendamment) ---
+function formaterLigneProduit({ nom, prix }) {
+  return `- ${nom} : ${prix} MAD`;
 }
 
-function produitsDisponibles(catalogue) {
-  return catalogue.filter(({ stock }) => stock > 0);
+function formaterResumeProduit({ nom, prix, stock }) {
+  return `${nom} - ${prix} MAD - ${stock} unités`;
 }
 
-function valeurStock(catalogue) {
-  return catalogue.reduce((total, { prix, stock }) => total + prix * stock, 0);
-}
-
-function produitMoinsCher(catalogue) {
-  const disponibles = produitsDisponibles(catalogue);
-  if (disponibles.length === 0) {
-    return null;
+// --- Affichage du catalogue ---
+function afficherCatalogue(liste) {
+  if (!Array.isArray(liste) || liste.length === 0) {
+    console.log('--- Catalogue vide ---');
+    return;
   }
-  return disponibles.reduce((moinsCher, produit) =>
-    produit.prix < moinsCher.prix ? produit : moinsCher
+  console.log('--- Catalogue complet ---');
+  liste.map(formaterLigneProduit).forEach(ligne => console.log(ligne));
+}
+
+// --- Produits disponibles (stock > 0) ---
+function getProduitsDisponibles(liste) {
+  if (!Array.isArray(liste)) return [];
+  return liste.filter(p => p.stock > 0);
+}
+
+// --- Valeur totale du stock ---
+function calculerValeurStock(liste) {
+  if (!Array.isArray(liste)) return 0;
+  return liste.reduce((total, p) => total + p.prix * p.stock, 0);
+}
+
+// --- Produit disponible le moins cher ---
+function getProduitMoinsCher(liste) {
+  const dispo = getProduitsDisponibles(liste);
+  if (dispo.length === 0) return null;
+  return dispo.reduce((min, p) => (p.prix < min.prix ? p : min));
+}
+
+// --- Résumé du catalogue ---
+function getResumeCatalogue(liste) {
+  if (!Array.isArray(liste)) return [];
+  return liste.map(formaterResumeProduit);
+}
+
+// 3. Défi supplémentaire : Validation d'un produit
+function estValide(p) {
+  if (!p || typeof p !== 'object' || Array.isArray(p)) return false;
+  const { id, nom, categorie, prix, stock } = p;
+  return (
+    id != null &&
+    typeof nom === 'string' && nom.trim() !== '' &&
+    typeof categorie === 'string' && categorie.trim() !== '' &&
+    Number.isFinite(prix) && prix >= 0 &&
+    Number.isInteger(stock) && stock >= 0
   );
 }
 
-function resumeCatalogue(catalogue) {
-  return catalogue.map(({ nom, prix, stock }) => `${nom} - ${prix} MAD - ${stock} unites`);
-}
+// 4. Exécution principale
+function executer() {
+  console.log('=== TP2 - Catalogue CampusStock ===\n');
 
-/* --------------------------------------------------------------------------
- * 3) Defi supplementaire
- * ------------------------------------------------------------------------ */
-
-function estValide(produit) {
-  if (produit === null || typeof produit !== 'object') {
-    return false;
-  }
-  const { prix, stock } = produit;
-  return Number.isFinite(prix) && Number.isFinite(stock) && prix >= 0 && stock >= 0;
-}
-
-/* --------------------------------------------------------------------------
- * 4) Programme principal
- * ------------------------------------------------------------------------ */
-
-function programmePrincipal() {
-  console.log('===== TP2 - Catalogue de produits =====\n');
-
+  // Affichage du catalogue
   afficherCatalogue(produits);
 
-  const disponibles = produitsDisponibles(produits);
-  console.log('\n--- Produits disponibles ---');
-  disponibles.forEach(({ nom, stock }) => {
-    console.log(`- ${nom} (stock : ${stock})`);
-  });
-  console.log(`Nombre de produits disponibles : ${disponibles.length}`);
+  // Produits disponibles
+  const disponibles = getProduitsDisponibles(produits);
+  console.log(`\nProduits disponibles (${disponibles.length}) :`);
+  disponibles.forEach(p => console.log(`- ${p.nom} (stock: ${p.stock})`));
 
-  let valeurTotale = valeurStock(produits);
-  console.log(`\nValeur totale du stock : ${enMAD(valeurTotale)}`);
+  // Valeur totale du stock
+  const total = calculerValeurStock(produits);
+  console.log(`\nValeur totale du stock : ${total} MAD`);
 
-  const moinsCher = produitMoinsCher(produits);
-  if (moinsCher !== null) {
+  // Produit le moins cher (avec déstructuration)
+  const moinsCher = getProduitMoinsCher(produits);
+  if (moinsCher) {
     const { nom, prix, stock, categorie } = moinsCher;
-    console.log(`\nProduit disponible le moins cher : ${nom} (${categorie}) - ${prix} MAD - ${stock} unites`);
+    console.log(`\nProduit le moins cher : ${nom} (${categorie}) - ${prix} MAD (${stock} en stock)`);
   } else {
-    console.log('\nAucun produit disponible');
+    console.log('\nAucun produit disponible.');
   }
 
-  console.log('\n--- Resume du catalogue ---');
-  resumeCatalogue(produits).forEach((ligne) => console.log(ligne));
+  // Résumé
+  console.log('\n--- Résumé ---');
+  getResumeCatalogue(produits).forEach(ligne => console.log(ligne));
 
-  console.log('\n--- Validation des donnees (estValide) ---');
-  produits.forEach((produit) => {
-    console.log(`- ${produit.nom} : ${estValide(produit) ? 'valide' : 'invalide'}`);
+  // Validation
+  console.log('\n--- Validation des données ---');
+  produits.forEach(p => {
+    console.log(`- ${p.nom} : ${estValide(p) ? 'Valide' : 'Invalide'}`);
   });
 }
 
-/* --------------------------------------------------------------------------
- * 5) Cas de test imposes
- * ------------------------------------------------------------------------ */
+// 5. Cas de test
+function tester() {
+  console.log('\n=== Tests des cas particuliers ===\n');
 
-function lancerCasDeTest() {
-  console.log('\n\n===== Cas de test imposes =====\n');
+  // Test 1 : Tous les stocks à zéro
+  const stocksNuls = produits.map(p => ({ ...p, stock: 0 }));
+  console.log('Test 1 (Tous stocks à 0) :');
+  console.log(' Valeur stock :', calculerValeurStock(stocksNuls), 'MAD');
+  console.log(' Produit min :', getProduitMoinsCher(stocksNuls) ? 'Trouvé' : 'Aucun produit disponible');
 
-  const disponibles = produitsDisponibles(produits);
-  const ecranPresent = disponibles.some(({ nom }) => nom === 'Ecran');
-  console.log('Test 1 - Ecran a stock nul :');
-  console.log(`  Disponibles : ${disponibles.map(({ nom }) => nom).join(', ')}`);
-  console.log(`  L'Ecran est absent de la liste : ${!ecranPresent} (attendu : true)`);
+  // Test 2 : Catalogue vide
+  console.log('\nTest 2 (Catalogue vide) :');
+  console.log(' Valeur stock :', calculerValeurStock([]), 'MAD');
+  console.log(' Produit min :', getProduitMoinsCher([]) ? 'Trouvé' : 'Aucun produit disponible');
 
-  const stocksNuls = produits.map((produit) => ({ ...produit, stock: 0 }));
-  const minStocksNuls = produitMoinsCher(stocksNuls);
-  console.log('\nTest 2 - Tous les stocks a zero :');
-  console.log(`  Prix minimal : ${minStocksNuls === null ? 'Aucun produit disponible' : minStocksNuls.nom}`);
-  console.log(`  Valeur totale : ${enMAD(valeurStock(stocksNuls))} (attendu : 0 MAD) - aucun plantage`);
+  // Test 3 : Entrées invalides (null, undefined)
+  console.log('\nTest 3 (Entrées non-tableaux) :');
+  console.log(' calculerValeurStock(null)  :', calculerValeurStock(null));
+  console.log(' getProduitsDisponibles()   :', getProduitsDisponibles().length, 'produits');
+  console.log(' getProduitMoinsCher(null)  :', getProduitMoinsCher(null));
 
-  const catalogueVide = [];
-  const minCatalogueVide = produitMoinsCher(catalogueVide);
-  console.log('\nTest 3 - Catalogue vide :');
-  console.log(`  Valeur totale : ${enMAD(valeurStock(catalogueVide))} (attendu : 0 MAD)`);
-  console.log(`  Prix minimal : ${minCatalogueVide === null ? 'Aucun produit disponible' : minCatalogueVide.nom}`);
+  // Test 4 : Validation de données invalides
+  console.log('\nTest 4 (Validation) :');
+  const cas = [
+    null,
+    undefined,
+    {},
+    [],
+    { nom: 'X', prix: -10, stock: 5 },
+    { nom: 'X', prix: 10, stock: -1 },
+    { nom: 'X', prix: NaN, stock: 5 },
+    { nom: 'X', prix: 10, stock: 2.5 },
+    { nom: 'X', prix: Infinity, stock: 5 },
+    { id: 1, nom: 'X', categorie: 'C', prix: 10, stock: 5 }
+  ];
+  cas.forEach((c, i) => {
+    console.log(` Cas ${i + 1} : ${estValide(c)}`);
+  });
 
-  console.log('\nTest 4 - Verification des donnees (estValide) :');
-  console.log(`  { prix: 120, stock: 5 } -> ${estValide({ prix: 120, stock: 5 })} (attendu : true)`);
-  console.log(`  { prix: -5, stock: 3 } -> ${estValide({ prix: -5, stock: 3 })} (attendu : false)`);
-  console.log(`  { prix: '80', stock: 8 } -> ${estValide({ prix: '80', stock: 8 })} (attendu : false)`);
-  console.log(`  { prix: Infinity, stock: 2 } -> ${estValide({ prix: Infinity, stock: 2 })} (attendu : false)`);
+  // Test 5 : Égalité de prix (stabilité du reduce)
+  console.log('\nTest 5 (Prix égaux) :');
+  const egaux = [
+    { id: 1, nom: 'A', categorie: 'C', prix: 100, stock: 1 },
+    { id: 2, nom: 'B', categorie: 'C', prix: 100, stock: 1 }
+  ];
+  console.log(' Min :', getProduitMoinsCher(egaux)?.nom, '(doit être A)');
 
-  const sourisPlusChere = produits.map((p) => (p.nom === 'Souris' ? { ...p, prix: p.prix + 10 } : p));
-  console.log('\nTest 5 - Prix de la Souris augmente de 10 MAD (question 4) :');
-  console.log(`  Nouvelle valeur du stock : ${enMAD(valeurStock(sourisPlusChere))} (attendu : 2040 MAD)`);
+  // Test 6 : Valeur du stock attendue
+  console.log('\nTest 6 (Valeur stock attendue = 1960) :');
+  console.log(' Valeur :', calculerValeurStock(produits), 'MAD');
 }
 
-programmePrincipal();
-lancerCasDeTest();
+// Lancement du programme
+executer();
+tester();
